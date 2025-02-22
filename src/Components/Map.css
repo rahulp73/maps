@@ -1,0 +1,12 @@
+/* Custom styles for the scale control */
+.mapboxgl-ctrl-scale {
+    background: rgba(255, 255, 255, 0.78) !important; /* Add a background color */
+    padding: 5px !important; /* Add some padding */
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1) !important; /* Add a subtle shadow */
+    backdrop-filter: blur(13.3px) !important;
+    -webkit-backdrop-filter: blur(13.3px) !important;
+    font-family: 'roboto';
+    color: black !important;  /* Adjust the color of the scale text */
+    font-weight: 900;
+    font-size: 100%; /* Adjust the font size */
+}
