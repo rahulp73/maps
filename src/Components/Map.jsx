@@ -36,8 +36,9 @@ export default function Map() {
     const [anchorEl, setAnchorEl] = React.useState(null);
     const open = Boolean(anchorEl);
 
-    mapboxgl.accessToken = 'pk.eyJ1Ijoicm9oaXRoeSIsImEiOiJjbHNvdjJkbDUwaW1oMmpvNDJzMmtmc2x4In0.pa-q8L3Ufesjl3qqVCaHwQ';
+    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN; // Set your own mapbox token here
 
+    // Initialize the map
     useEffect(() => {
         if (map.current) return;
 
@@ -159,6 +160,7 @@ export default function Map() {
                 }
             };
             reader.readAsText(file);
+            handleClose();
         }
     };
 
@@ -294,9 +296,9 @@ export default function Map() {
 
     return <>
         <Stack direction='row' spacing={2} sx={{ position: 'absolute', top: 0, left: 0, zIndex: 1, padding: 2 }}>
-            <Chip icon={isMeasure ? <DoneRounded /> : <StraightenRounded />} label="Length" sx={{ background: 'white', '&:hover': { backgroundColor: '#e0e0e0' }, '&:active': { backgroundColor: '#c0c0c0' } }} onClick={() => toggleMeasurement('line')}></Chip>
-            <Chip icon={isArea ? <DoneRounded /> : <SquareFootRounded />} label="Area" sx={{ background: 'white', '&:hover': { backgroundColor: '#e0e0e0' }, '&:active': { backgroundColor: '#c0c0c0' } }} onClick={() => toggleMeasurement('area')}></Chip>
-            <Chip icon={<Queue />} label="Add Layer" sx={{ background: 'white', '&:hover': { backgroundColor: '#e0e0e0' }, '&:active': { backgroundColor: '#c0c0c0' } }} onClick={handleClick}></Chip>
+            <Chip icon={isMeasure ? <DoneRounded /> : <StraightenRounded />} label="Length" sx={{ color:'black',background: 'white', '&:hover': { backgroundColor: '#e0e0e0' }, '&:active': { backgroundColor: '#c0c0c0' } }} onClick={() => toggleMeasurement('line')}></Chip>
+            <Chip icon={isArea ? <DoneRounded /> : <SquareFootRounded />} label="Area" sx={{ color:'black',background: 'white', '&:hover': { backgroundColor: '#e0e0e0' }, '&:active': { backgroundColor: '#c0c0c0' } }} onClick={() => toggleMeasurement('area')}></Chip>
+            <Chip icon={<Queue />} label="Add Layer" sx={{ background: 'white', '&:hover': { color:'black',backgroundColor: '#e0e0e0' }, '&:active': { backgroundColor: '#c0c0c0' } }} onClick={handleClick}></Chip>
             <Menu
                         id="long-menu"
                         MenuListProps={{
