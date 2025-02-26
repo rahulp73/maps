@@ -5,11 +5,40 @@ import * as turf from '@turf/turf';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import { styled } from '@mui/material/styles';
-import { Chip, Stack, Snackbar, Menu, MenuItem, Button } from '@mui/material';
-import { kml } from '@tmcw/togeojson'
-import { CloudUploadRounded, DoneRounded, Queue, SquareFootRounded, StraightenRounded } from '@mui/icons-material';
+import {
+    Chip,
+    Stack,
+    Snackbar,
+    Menu,
+    MenuItem,
+    Button,
+    Drawer,
+    Box,
+    Typography,
+    List,
+    ListItem,
+    ListItemIcon,
+    ListItemText,
+    Switch,
+    Divider,
+    IconButton
+} from '@mui/material';
+import {
+    CloudUploadRounded,
+    DoneRounded,
+    Queue,
+    SquareFootRounded,
+    StraightenRounded,
+    Layers,
+    Terrain,
+    Satellite,
+    Map as MapIcon,
+    ChevronLeft
+} from '@mui/icons-material';
+import { kml } from '@tmcw/togeojson';
 
 const ITEM_HEIGHT = 48;
+const DRAWER_WIDTH = 300;
 
 const VisuallyHiddenInput = styled('input')({
     clip: 'rect(0 0 0 0)',
@@ -33,9 +62,16 @@ export default function Map() {
     const [isMeasure, setIsMeasure] = useState(false);
     const [isArea, setIsArea] = useState(false);
     const [measurement, setMeasurement] = useState('');
-    const [anchorEl, setAnchorEl] = React.useState(null);
+    const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
 
+    // Drawer state
+    const [drawerOpen, setDrawerOpen] = useState(false);
+
+    // Layer toggle states
+    const [layers, setLayers] = useState({
+        satellite: false
+    });
     mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN; // Set your own mapbox token here
 
     // Initialize the map
@@ -50,6 +86,7 @@ export default function Map() {
             config: {
                 basemap: {
                     lightPreset: (() => {
+                        return 'day';
                         const hour = new Date().getHours();
                         if (hour >= 5 && hour < 8) return 'dawn';
                         if (hour >= 8 && hour < 17) return 'day';
@@ -91,7 +128,57 @@ export default function Map() {
         });
 
         map.current.on('draw.selectionchange', updateMeasurement);
+
+        // Initialize map layers once the map is loaded
+        map.current.on('load', () => {
+            // Add terrain source
+            map.current.addSource('mapbox-terrain', {
+                'type': 'raster-dem',
+                'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+                'tileSize': 512,
+                'maxzoom': 14
+            });
+
+            // Add Bhuvan WMS source
+            map.current.addSource('bhuvan-wms', {
+                'type': 'raster',
+                'tiles': [
+                    'http://bhuvan5.nrsc.gov.in/bhuvan/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&FORMAT=image/png&TRANSPARENT=true&LAYERS=india_outline&SRS=EPSG:4326&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-4326}'
+                ],
+                'tileSize': 256
+            });
+
+            // Add satellite source
+            map.current.addSource('mapbox-satellite', {
+                'type': 'raster',
+                'url': 'mapbox://mapbox.satellite',
+                'tileSize': 256
+            });
+        });
     }, []);
+
+    // Handle layer toggle changes
+    useEffect(() => {
+        if (!map.current || !map.current.loaded()) return;
+
+        // Handle satellite layer
+        if (layers.satellite) {
+            if (!map.current.getLayer('satellite-layer')) {
+                map.current.addLayer({
+                    'id': 'satellite-layer',
+                    'type': 'raster',
+                    'source': 'mapbox-satellite',
+                    'paint': {
+                        'raster-opacity': 0.6
+                    }
+                });
+            }
+        } else {
+            if (map.current.getLayer('satellite-layer')) {
+                map.current.removeLayer('satellite-layer');
+            }
+        }
+    }, [layers]);
 
     const toggleMeasurement = (type) => {
         draw.current.deleteAll();
@@ -241,19 +328,19 @@ export default function Map() {
 
     // Helper functions for geometry type checking
     const hasPoints = (geojson) => {
-        return geojson.features.some(f => 
+        return geojson.features.some(f =>
             f.geometry && (f.geometry.type === 'Point' || f.geometry.type === 'MultiPoint')
         );
     };
 
     const hasLines = (geojson) => {
-        return geojson.features.some(f => 
+        return geojson.features.some(f =>
             f.geometry && (f.geometry.type === 'LineString' || f.geometry.type === 'MultiLineString')
         );
     };
 
     const hasPolygons = (geojson) => {
-        return geojson.features.some(f => 
+        return geojson.features.some(f =>
             f.geometry && (f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon')
         );
     };
@@ -275,7 +362,7 @@ export default function Map() {
                 geometry.coordinates.forEach(line => line.forEach(coord => coords.push(coord)));
                 break;
             case 'MultiPolygon':
-                geometry.coordinates.forEach(polygon => 
+                geometry.coordinates.forEach(polygon =>
                     polygon.forEach(line => line.forEach(coord => coords.push(coord)))
                 );
                 break;
@@ -294,74 +381,134 @@ export default function Map() {
         }
     };
 
-    return <>
-        <Stack direction='row' spacing={2} sx={{ position: 'absolute', top: 0, left: 0, zIndex: 1, padding: 2 }}>
-            <Chip icon={isMeasure ? <DoneRounded /> : <StraightenRounded />} label="Length" sx={{ color:'black',background: 'white', '&:hover': { backgroundColor: '#e0e0e0' }, '&:active': { backgroundColor: '#c0c0c0' } }} onClick={() => toggleMeasurement('line')}></Chip>
-            <Chip icon={isArea ? <DoneRounded /> : <SquareFootRounded />} label="Area" sx={{ color:'black',background: 'white', '&:hover': { backgroundColor: '#e0e0e0' }, '&:active': { backgroundColor: '#c0c0c0' } }} onClick={() => toggleMeasurement('area')}></Chip>
-            <Chip icon={<Queue />} label="Add Layer" sx={{ background: 'white', '&:hover': { color:'black',backgroundColor: '#e0e0e0' }, '&:active': { backgroundColor: '#c0c0c0' } }} onClick={handleClick}></Chip>
-            <Menu
-                        id="long-menu"
-                        MenuListProps={{
-                            'aria-labelledby': 'long-button',
-                        }}
-                        anchorEl={anchorEl}
-                        open={open}
-                        sx={{marginTop: '0.3%'}}
-                        onClose={handleClose}
-                        PaperProps={{
-                            style: {
-                                maxHeight: ITEM_HEIGHT * 4.5,
-                                width: '15ch',
-                                boxShadow: '0 0 1px rgba(0,0,0,0.5)',
-                                borderRadius: '16px'
-                            },
-                        }}
-                    >
-                        <MenuItem sx={{ paddingTop: 0, paddingBottom: 0, paddingLeft: 0, paddingRight: 0 }}>
-                            <Button
-                                component="label"
-                                role={undefined}
-                                variant="text"
-                                tabIndex={-1}
-                                sx={{ width: '100%', color: 'black' }}
-                                startIcon={<CloudUploadRounded />}
-                            >
-                                GeoJSON
-                                <VisuallyHiddenInput onChange={handleFileChange} type="file" />
-                            </Button>
-                        </MenuItem>
-                        <MenuItem sx={{ paddingTop: 0, paddingBottom: 0, paddingLeft: 0, paddingRight: 0 }}>
-                            <Button
-                                component="label"
-                                role={undefined}
-                                variant="text"
-                                tabIndex={-1}
-                                sx={{ width: '100%', color: 'black' }}
-                                startIcon={<CloudUploadRounded />}
-                            >
-                                KML
-                                <VisuallyHiddenInput onChange={handleFileChange} type="file" />
-                            </Button>
-                        </MenuItem>
-                        <MenuItem sx={{ paddingTop: 0, paddingBottom: 0, paddingLeft: 0, paddingRight: 0 }}>
-                            <Button
-                                component="label"
-                                role={undefined}
-                                variant="text"
-                                tabIndex={-1}
-                                sx={{ width: '100%', color: 'black' }}
-                                onClick={() => {clearLayers(); handleClose();}} 
-                            >
-                                Clear
-                            </Button>
-                        </MenuItem>
-                    </Menu>
-        </Stack>
-        <Snackbar
-            open={!!measurement}
-            message={measurement}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        />
-        <div id='map-container' style={{ position: 'relative', height: '100vh' }} ref={mapContainer}></div>
-    </>
+    const handleLayerToggle = (layerName) => {
+        setLayers(prev => ({
+            ...prev,
+            [layerName]: !prev[layerName]
+        }));
+    };
+
+    const toggleDrawer = () => {
+        setDrawerOpen(!drawerOpen);
+    };
+
+    return (
+        <>
+            <Stack direction='row' spacing={2} sx={{ position: 'absolute', top: 0, left: 0, zIndex: 1, padding: 2 }}>
+                <Chip icon={isMeasure ? <DoneRounded /> : <StraightenRounded />} label="Length" sx={{ color: 'black', background: 'white', '&:hover': { backgroundColor: '#e0e0e0' }, '&:active': { backgroundColor: '#c0c0c0' } }} onClick={() => toggleMeasurement('line')}></Chip>
+                <Chip icon={isArea ? <DoneRounded /> : <SquareFootRounded />} label="Area" sx={{ color: 'black', background: 'white', '&:hover': { backgroundColor: '#e0e0e0' }, '&:active': { backgroundColor: '#c0c0c0' } }} onClick={() => toggleMeasurement('area')}></Chip>
+                <Chip icon={<Queue />} label="Add Layer" sx={{ background: 'white', '&:hover': { color: 'black', backgroundColor: '#e0e0e0' }, '&:active': { backgroundColor: '#c0c0c0' } }} onClick={handleClick}></Chip>
+                <Chip icon={<Layers />} label="Layer Manager" sx={{ background: 'white', '&:hover': { color: 'black', backgroundColor: '#e0e0e0' }, '&:active': { backgroundColor: '#c0c0c0' } }} onClick={toggleDrawer}></Chip>
+                <Menu
+                    id="long-menu"
+                    MenuListProps={{
+                        'aria-labelledby': 'long-button',
+                    }}
+                    anchorEl={anchorEl}
+                    open={open}
+                    sx={{ marginTop: '0.3%' }}
+                    onClose={handleClose}
+                    PaperProps={{
+                        style: {
+                            maxHeight: ITEM_HEIGHT * 4.5,
+                            width: '15ch',
+                            boxShadow: '0 0 1px rgba(0,0,0,0.5)',
+                            borderRadius: '16px'
+                        },
+                    }}
+                >
+                    <MenuItem sx={{ paddingTop: 0, paddingBottom: 0, paddingLeft: 0, paddingRight: 0 }}>
+                        <Button
+                            component="label"
+                            role={undefined}
+                            variant="text"
+                            tabIndex={-1}
+                            sx={{ width: '100%', color: 'black' }}
+                            startIcon={<CloudUploadRounded />}
+                        >
+                            GeoJSON
+                            <VisuallyHiddenInput onChange={handleFileChange} type="file" />
+                        </Button>
+                    </MenuItem>
+                    <MenuItem sx={{ paddingTop: 0, paddingBottom: 0, paddingLeft: 0, paddingRight: 0 }}>
+                        <Button
+                            component="label"
+                            role={undefined}
+                            variant="text"
+                            tabIndex={-1}
+                            sx={{ width: '100%', color: 'black' }}
+                            startIcon={<CloudUploadRounded />}
+                        >
+                            KML
+                            <VisuallyHiddenInput onChange={handleFileChange} type="file" />
+                        </Button>
+                    </MenuItem>
+                    <MenuItem sx={{ paddingTop: 0, paddingBottom: 0, paddingLeft: 0, paddingRight: 0 }}>
+                        <Button
+                            component="label"
+                            role={undefined}
+                            variant="text"
+                            tabIndex={-1}
+                            sx={{ width: '100%', color: 'black' }}
+                            onClick={() => { clearLayers(); handleClose(); }}
+                        >
+                            Clear
+                        </Button>
+                    </MenuItem>
+                </Menu>
+            </Stack>
+
+            {/* Layer Manager Drawer */}
+            <Drawer
+                anchor="left"
+                open={drawerOpen}
+                onClose={toggleDrawer}
+                sx={{
+                    '& .MuiDrawer-paper': {
+                        width: DRAWER_WIDTH,
+                        boxSizing: 'border-box',
+                        borderRadius: '0 16px 16px 0',
+                        // marginTop: '64px',
+                        // height: 'calc(100% - 64px)',
+                    },
+                }}
+            >
+                <Box sx={{ display: 'flex', alignItems: 'center', padding: 2, justifyContent: 'space-between' }}>
+                    <Typography variant="h6" component="div">
+                        Layer Manager
+                    </Typography>
+                    <IconButton onClick={toggleDrawer}>
+                        <ChevronLeft />
+                    </IconButton>
+                </Box>
+                <Divider />
+                <List>
+                    <ListItem>
+                        <ListItemIcon>
+                            <Satellite />
+                        </ListItemIcon>
+                        <ListItemText primary="Satellite Imagery" secondary="Mapbox Satellite" />
+                        <Switch
+                            edge="end"
+                            checked={layers.satellite}
+                            onChange={() => handleLayerToggle('satellite')}
+                        />
+                    </ListItem>
+                </List>
+                <Divider />
+                <Box sx={{ padding: 2 }}>
+                    <Typography variant="caption" color="text.secondary">
+                        Toggle layers on and off to customize your map view. Additional layers can be added to this panel as needed.
+                    </Typography>
+                </Box>
+            </Drawer>
+
+            <Snackbar
+                open={!!measurement}
+                message={measurement}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            />
+            <div id='map-container' style={{ position: 'relative', height: '100vh' }} ref={mapContainer}></div>
+        </>
+    );
 }
