@@ -7,7 +7,7 @@ import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import { kml } from '@tmcw/togeojson';
 import { styled } from '@mui/material/styles';
 import { Chip, Stack, Snackbar, Menu, MenuItem, Button, Drawer, Box, Typography, List, ListItem, ListItemIcon, ListItemText, Switch, Divider, IconButton, FormControl, InputLabel, Select } from '@mui/material';
-import { CloudUploadRounded, DoneRounded, Queue, SquareFootRounded, StraightenRounded, Layers, Terrain, Satellite, Map as MapIcon, ChevronLeft, BarChart } from '@mui/icons-material';
+import { CloudUploadRounded, DoneRounded, Queue, SquareFootRounded, StraightenRounded, Layers, Satellite, Map as MapIcon, ChevronLeft, BarChart, Public } from '@mui/icons-material';
 import './Map.css';
 
 const ITEM_HEIGHT = 48;
@@ -280,6 +280,9 @@ export default function Map() {
     // Drawer state
     const [drawerOpen, setDrawerOpen] = useState(false);
 
+    // Globe view state
+    const [isGlobeView, setIsGlobeView] = useState(true);
+
     // Layer toggle states
     const [layers, setLayers] = useState({
         satellite: false,
@@ -354,6 +357,29 @@ export default function Map() {
         });
 
     }, []);
+
+    // Handle projection change
+    const toggleGlobeView = () => {
+        if (!map.current) return;
+        
+        const newProjection = isGlobeView ? 'mercator' : 'globe';
+        
+        // Update the map projection
+        map.current.setProjection(newProjection);
+        
+        // Adjust controls based on projection
+        if (newProjection === 'globe') {
+            // Enable rotation for globe view
+            map.current.dragRotate.enable();
+            map.current.touchZoomRotate.enableRotation();
+        } else {
+            // Disable rotation for mercator view
+            map.current.dragRotate.disable();
+            map.current.touchZoomRotate.disableRotation();
+        }
+        
+        setIsGlobeView(!isGlobeView);
+    };
 
     // Fetch India GeoJSON data
     const fetchIndiaGeoJSON = async () => {
@@ -805,6 +831,21 @@ export default function Map() {
                             </Button>
                         </MenuItem>
                     </Menu>
+                    <Chip 
+                        icon={isGlobeView ? <MapIcon /> : <Public />} 
+                        label={isGlobeView ? "Mercator" : "Globe"} 
+                        sx={{ 
+                            background: 'white', 
+                            '&:hover': { 
+                                color: 'black', 
+                                backgroundColor: '#e0e0e0' 
+                            }, 
+                            '&:active': { 
+                                backgroundColor: '#c0c0c0' 
+                            } 
+                        }} 
+                        onClick={toggleGlobeView}
+                    />
                 </Stack>
 
                 {/* State Data Analysis Controls */}
