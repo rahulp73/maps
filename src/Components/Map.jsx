@@ -248,15 +248,12 @@ const stateData = {
 
 // Color function for state visualization
 const getColor = (value, metric) => {
-    console.log('Value:', value, 'Metric:', metric);
     const values = Object.values(stateData).map((state) => state[metric]);
-    console.log('Values:', values);
     const min = Math.min(...values);
     const max = Math.max(...values);
     const ratio = (value - min) / (max - min);
     const red = Math.floor(255 * ratio);
     const blue = 255 - red;
-    console.log('Color:', `rgb(${red}, 0, ${blue})`);
     return `rgb(${red}, 0, ${blue})`;
 };
 
@@ -448,13 +445,11 @@ export default function Map() {
 
         // Remove existing layer if it exists
         if (map.current.getLayer('states-layer')) {
-            console.log('Removing existing layer');
             map.current.removeLayer('states-layer');
         }
 
         // Remove existing source if it exists
         if (map.current.getSource('india-states')) {
-            console.log('Removing existing source');
             map.current.removeSource('india-states');
         }
 
@@ -462,11 +457,8 @@ export default function Map() {
             ...indiaGeoJSON,
 
             features: indiaGeoJSON.features.map((feature) => {
-                console.log('Feature:', feature);
-                const stateName = feature.properties.name
-                console.log('State Name:', stateName);
+                const stateName = feature.properties.name;
                 const metricValue = stateData[stateName]?.[selectedMetric] || 0;
-                console.log('Metric Value:', metricValue);
                 return {
                     ...feature,
                     properties: {
@@ -477,8 +469,6 @@ export default function Map() {
                 };
             }),
         };
-
-        console.log('Adding updated source and layer', updatedGeoJSON);
 
         map.current.addSource('india-states', {
             type: 'geojson',
