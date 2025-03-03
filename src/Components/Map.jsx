@@ -723,103 +723,119 @@ export default function Map() {
 
     return (
         <>
-            <Stack direction='row' spacing={2} sx={{
+            <Box sx={{
                 position: 'absolute',
                 top: 0,
                 left: 0,
                 right: 0,
                 zIndex: 1,
-                padding: { xs: 1, sm: 2 },
                 display: 'flex',
-                flexWrap: 'wrap',
-                justifyContent: 'center',
-                '& .MuiChip-root': {
-                    margin: '4px'
-                }
+                flexDirection: 'column',
+                alignItems: 'center',
+                padding: { xs: 1, sm: 2 },
             }}>
-                <Chip icon={isMeasure ? <DoneRounded /> : <StraightenRounded />} label="Length" sx={{ color: 'black', background: 'white', '&:hover': { backgroundColor: '#e0e0e0' }, '&:active': { backgroundColor: '#c0c0c0' } }} onClick={() => toggleMeasurement('line')}></Chip>
-                <Chip icon={isArea ? <DoneRounded /> : <SquareFootRounded />} label="Area" sx={{ color: 'black', background: 'white', '&:hover': { backgroundColor: '#e0e0e0' }, '&:active': { backgroundColor: '#c0c0c0' } }} onClick={() => toggleMeasurement('area')}></Chip>
-                <Chip icon={<Queue />} label="Add Layer" sx={{ background: 'white', '&:hover': { color: 'black', backgroundColor: '#e0e0e0' }, '&:active': { backgroundColor: '#c0c0c0' } }} onClick={handleClick}></Chip>
-                <Chip icon={<Layers />} label="Layers" sx={{ background: 'white', '&:hover': { color: 'black', backgroundColor: '#e0e0e0' }, '&:active': { backgroundColor: '#c0c0c0' } }} onClick={toggleDrawer}></Chip>
-                <Menu
-                    id="long-menu"
-                    MenuListProps={{
-                        'aria-labelledby': 'long-button',
-                    }}
-                    anchorEl={anchorEl}
-                    open={open}
-                    sx={{ marginTop: '0.3%' }}
-                    onClose={handleClose}
-                    PaperProps={{
-                        style: {
-                            maxHeight: ITEM_HEIGHT * 4.5,
-                            width: '15ch',
-                            boxShadow: '0 0 1px rgba(0,0,0,0.5)',
-                            borderRadius: '16px'
-                        },
-                    }}
-                >
-                    <MenuItem sx={{ paddingTop: 0, paddingBottom: 0, paddingLeft: 0, paddingRight: 0 }}>
-                        <Button
-                            component="label"
-                            role={undefined}
-                            variant="text"
-                            tabIndex={-1}
-                            sx={{ width: '100%', color: 'black' }}
-                            startIcon={<CloudUploadRounded />}
-                        >
-                            GeoJSON
-                            <VisuallyHiddenInput onChange={handleFileChange} type="file" />
-                        </Button>
-                    </MenuItem>
-                    <MenuItem sx={{ paddingTop: 0, paddingBottom: 0, paddingLeft: 0, paddingRight: 0 }}>
-                        <Button
-                            component="label"
-                            role={undefined}
-                            variant="text"
-                            tabIndex={-1}
-                            sx={{ width: '100%', color: 'black' }}
-                            startIcon={<CloudUploadRounded />}
-                        >
-                            KML
-                            <VisuallyHiddenInput onChange={handleFileChange} type="file" />
-                        </Button>
-                    </MenuItem>
-                    <MenuItem sx={{ paddingTop: 0, paddingBottom: 0, paddingLeft: 0, paddingRight: 0 }}>
-                        <Button
-                            component="label"
-                            role={undefined}
-                            variant="text"
-                            tabIndex={-1}
-                            sx={{ width: '100%', color: 'black' }}
-                            onClick={() => { clearLayers(); handleClose(); }}
-                        >
-                            Clear
-                        </Button>
-                    </MenuItem>
-                </Menu>
-            </Stack>
+                <Stack direction='row' spacing={2} sx={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    justifyContent: 'center',
+                    width: '100%',
+                    mb: layers.stateData ? 0.5 : 0, // Add margin bottom only if state data is visible
+                    '& .MuiChip-root': {
+                        margin: '4px'
+                    }
+                }}>
+                    <Chip icon={isMeasure ? <DoneRounded /> : <StraightenRounded />} label="Length" sx={{ color: 'black', background: 'white', '&:hover': { backgroundColor: '#e0e0e0' }, '&:active': { backgroundColor: '#c0c0c0' } }} onClick={() => toggleMeasurement('line')}></Chip>
+                    <Chip icon={isArea ? <DoneRounded /> : <SquareFootRounded />} label="Area" sx={{ color: 'black', background: 'white', '&:hover': { backgroundColor: '#e0e0e0' }, '&:active': { backgroundColor: '#c0c0c0' } }} onClick={() => toggleMeasurement('area')}></Chip>
+                    <Chip icon={<Queue />} label="Add Layer" sx={{ background: 'white', '&:hover': { color: 'black', backgroundColor: '#e0e0e0' }, '&:active': { backgroundColor: '#c0c0c0' } }} onClick={handleClick}></Chip>
+                    <Chip icon={<Layers />} label="Layers" sx={{ background: 'white', '&:hover': { color: 'black', backgroundColor: '#e0e0e0' }, '&:active': { backgroundColor: '#c0c0c0' } }} onClick={toggleDrawer}></Chip>
+                    <Menu
+                        id="long-menu"
+                        MenuListProps={{
+                            'aria-labelledby': 'long-button',
+                        }}
+                        anchorEl={anchorEl}
+                        open={open}
+                        sx={{ marginTop: '0.3%' }}
+                        onClose={handleClose}
+                        PaperProps={{
+                            style: {
+                                maxHeight: ITEM_HEIGHT * 4.5,
+                                width: '15ch',
+                                boxShadow: '0 0 1px rgba(0,0,0,0.5)',
+                                borderRadius: '16px'
+                            },
+                        }}
+                    >
+                        <MenuItem sx={{ paddingTop: 0, paddingBottom: 0, paddingLeft: 0, paddingRight: 0 }}>
+                            <Button
+                                component="label"
+                                role={undefined}
+                                variant="text"
+                                tabIndex={-1}
+                                sx={{ width: '100%', color: 'black' }}
+                                startIcon={<CloudUploadRounded />}
+                            >
+                                GeoJSON
+                                <VisuallyHiddenInput onChange={handleFileChange} type="file" />
+                            </Button>
+                        </MenuItem>
+                        <MenuItem sx={{ paddingTop: 0, paddingBottom: 0, paddingLeft: 0, paddingRight: 0 }}>
+                            <Button
+                                component="label"
+                                role={undefined}
+                                variant="text"
+                                tabIndex={-1}
+                                sx={{ width: '100%', color: 'black' }}
+                                startIcon={<CloudUploadRounded />}
+                            >
+                                KML
+                                <VisuallyHiddenInput onChange={handleFileChange} type="file" />
+                            </Button>
+                        </MenuItem>
+                        <MenuItem sx={{ paddingTop: 0, paddingBottom: 0, paddingLeft: 0, paddingRight: 0 }}>
+                            <Button
+                                component="label"
+                                role={undefined}
+                                variant="text"
+                                tabIndex={-1}
+                                sx={{ width: '100%', color: 'black' }}
+                                onClick={() => { clearLayers(); handleClose(); }}
+                            >
+                                Clear
+                            </Button>
+                        </MenuItem>
+                    </Menu>
+                </Stack>
 
-            {/* State Data Analysis Controls */}
-            {layers.stateData && (
-                <Box sx={{ position: 'absolute', top: 55, right: 7, zIndex: 1, padding: 2, backgroundColor: 'white', borderRadius: 2, boxShadow: 2, width: 250 }}>
-                    <Typography variant="subtitle1" gutterBottom>
-                        India State Data Analysis
-                    </Typography>
-                    <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-                        <InputLabel>Metric</InputLabel>
-                        <Select
-                            value={selectedMetric}
-                            label="Metric"
-                            onChange={(e) => setSelectedMetric(e.target.value)}
-                        >
-                            <MenuItem value="population">Population</MenuItem>
-                            <MenuItem value="gdp">GDP</MenuItem>
-                            <MenuItem value="area">Area</MenuItem>
-                            <MenuItem value="literacyRate">Literacy Rate</MenuItem>
-                        </Select>
-                    </FormControl>
-                    {/* <Button
+                {/* State Data Analysis Controls */}
+                {layers.stateData && (
+                    <Box sx={{
+                        padding: 2,
+                        backgroundColor: 'white',
+                        borderRadius: 2,
+                        boxShadow: 2,
+                        width: 250,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center'
+                    }}>
+                        <Typography variant="subtitle1" gutterBottom>
+                            India State Data Analysis
+                        </Typography>
+                        <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                            <InputLabel>Metric</InputLabel>
+                            <Select
+                                value={selectedMetric}
+                                label="Metric"
+                                onChange={(e) => setSelectedMetric(e.target.value)}
+                            >
+                                <MenuItem value="population">Population</MenuItem>
+                                <MenuItem value="gdp">GDP</MenuItem>
+                                <MenuItem value="area">Area</MenuItem>
+                                <MenuItem value="literacyRate">Literacy Rate</MenuItem>
+                            </Select>
+                        </FormControl>
+                        {/* <Button
                         variant="contained"
                         color="primary"
                         onClick={updateMapColors}
@@ -827,8 +843,9 @@ export default function Map() {
                     >
                         Update Visualization
                     </Button> */}
-                </Box>
-            )}
+                    </Box>
+                )}
+            </Box>
 
             {/* Layer Manager Drawer */}
             <Drawer
