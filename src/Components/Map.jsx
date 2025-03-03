@@ -4,38 +4,10 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import * as turf from '@turf/turf';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
-import { styled } from '@mui/material/styles';
-import {
-    Chip,
-    Stack,
-    Snackbar,
-    Menu,
-    MenuItem,
-    Button,
-    Drawer,
-    Box,
-    Typography,
-    List,
-    ListItem,
-    ListItemIcon,
-    ListItemText,
-    Switch,
-    Divider,
-    IconButton
-} from '@mui/material';
-import {
-    CloudUploadRounded,
-    DoneRounded,
-    Queue,
-    SquareFootRounded,
-    StraightenRounded,
-    Layers,
-    Terrain,
-    Satellite,
-    Map as MapIcon,
-    ChevronLeft
-} from '@mui/icons-material';
 import { kml } from '@tmcw/togeojson';
+import { styled } from '@mui/material/styles';
+import { Chip, Stack, Snackbar, Menu, MenuItem, Button, Drawer, Box, Typography, List, ListItem, ListItemIcon, ListItemText, Switch, Divider, IconButton, FormControl, InputLabel, Select } from '@mui/material';
+import { CloudUploadRounded, DoneRounded, Queue, SquareFootRounded, StraightenRounded, Layers, Terrain, Satellite, Map as MapIcon, ChevronLeft, BarChart } from '@mui/icons-material';
 
 const ITEM_HEIGHT = 48;
 const DRAWER_WIDTH = 300;
@@ -52,27 +24,263 @@ const VisuallyHiddenInput = styled('input')({
     width: 1,
 });
 
+// State data for visualization
+const stateData = {
+    'Andhra Pradesh': {
+        population: 49577103,
+        gdp: 1030000, // in million INR
+        area: 162968, // in square kilometers
+        literacyRate: 67.02, // in percentage
+    },
+    'Arunachal Pradesh': {
+        population: 1383727,
+        gdp: 27200,
+        area: 83743,
+        literacyRate: 66.95,
+    },
+    'Assam': {
+        population: 31205576,
+        gdp: 364000,
+        area: 78438,
+        literacyRate: 72.19,
+    },
+    'Bihar': {
+        population: 104099452,
+        gdp: 530000,
+        area: 94163,
+        literacyRate: 63.82,
+    },
+    'Chhattisgarh': {
+        population: 25545198,
+        gdp: 345000,
+        area: 135192,
+        literacyRate: 70.28,
+    },
+    'Goa': {
+        population: 1458545,
+        gdp: 73000,
+        area: 3702,
+        literacyRate: 88.70,
+    },
+    'Gujarat': {
+        population: 60439692,
+        gdp: 1690000,
+        area: 196024,
+        literacyRate: 78.03,
+    },
+    'Haryana': {
+        population: 25351462,
+        gdp: 850000,
+        area: 44212,
+        literacyRate: 75.55,
+    },
+    'Himachal Pradesh': {
+        population: 6864602,
+        gdp: 165000,
+        area: 55673,
+        literacyRate: 82.80,
+    },
+    'Jammu and Kashmir': {
+        population: 966889,
+        gdp: 30000,
+        area: 22429,
+        literacyRate: 74.43,
+    },
+    'Jharkhand': {
+        population: 32988134,
+        gdp: 300000,
+        area: 79716,
+        literacyRate: 66.41,
+    },
+    'Karnataka': {
+        population: 61095297,
+        gdp: 1740000,
+        area: 191791,
+        literacyRate: 75.36,
+    },
+    'Kerala': {
+        population: 33406061,
+        gdp: 780000,
+        area: 38852,
+        literacyRate: 93.91,
+    },
+    'Madhya Pradesh': {
+        population: 72626809,
+        gdp: 1000000,
+        area: 308245,
+        literacyRate: 69.32,
+    },
+    'Maharashtra': {
+        population: 123144223,
+        gdp: 3590000,
+        area: 307713,
+        literacyRate: 82.34,
+    },
+    'Manipur': {
+        population: 2855794,
+        gdp: 30000,
+        area: 22327,
+        literacyRate: 76.94,
+    },
+    'Meghalaya': {
+        population: 2966889,
+        gdp: 40000,
+        area: 22429,
+        literacyRate: 74.43,
+    },
+    'Mizoram': {
+        population: 1097206,
+        gdp: 20000,
+        area: 21081,
+        literacyRate: 91.58,
+    },
+    'Nagaland': {
+        population: 1978502,
+        gdp: 24500,
+        area: 16579,
+        literacyRate: 79.55,
+    },
+    'Odisha': {
+        population: 41974218,
+        gdp: 520000,
+        area: 155707,
+        literacyRate: 72.87,
+    },
+    'Punjab': {
+        population: 27743338,
+        gdp: 625000,
+        area: 50362,
+        literacyRate: 75.84,
+    },
+    'Rajasthan': {
+        population: 68548437,
+        gdp: 1050000,
+        area: 342239,
+        literacyRate: 67.06,
+    },
+    'Sikkim': {
+        population: 610577,
+        gdp: 20000,
+        area: 7096,
+        literacyRate: 81.42,
+    },
+    'Tamil Nadu': {
+        population: 72147030,
+        gdp: 2320000,
+        area: 130058,
+        literacyRate: 80.09,
+    },
+    'Telangana': {
+        population: 35003674,
+        gdp: 1020000,
+        area: 112077,
+        literacyRate: 66.54,
+    },
+    'Tripura': {
+        population: 3673917,
+        gdp: 50000,
+        area: 10486,
+        literacyRate: 87.22,
+    },
+    'Uttar Pradesh': {
+        population: 199812341,
+        gdp: 1780000,
+        area: 243286,
+        literacyRate: 67.68,
+    },
+    'Uttarakhand': {
+        population: 10086292,
+        gdp: 245000,
+        area: 53483,
+        literacyRate: 78.82,
+    },
+    'West Bengal': {
+        population: 91276115,
+        gdp: 1380000,
+        area: 88752,
+        literacyRate: 76.26,
+    },
+    'Andaman and Nicobar': {
+        population: 380581,
+        gdp: 7000,
+        area: 8249,
+        literacyRate: 86.27,
+    },
+    'Chandigarh': {
+        population: 1055450,
+        gdp: 40000,
+        area: 114,
+        literacyRate: 86.05,
+    },
+    'Dādra and Nagar Haveli and Damān and Diu': {
+        population: 615724,
+        gdp: 10000,
+        area: 603,
+        literacyRate: 87.07,
+    },
+    'Lakshadweep': {
+        population: 64473,
+        gdp: 2000,
+        area: 32,
+        literacyRate: 92.28,
+    },
+    'Delhi': {
+        population: 16787941,
+        gdp: 800000,
+        area: 1484,
+        literacyRate: 86.21,
+    },
+    'Puducherry': {
+        population: 1247953,
+        gdp: 50000,
+        area: 479,
+        literacyRate: 85.85,
+    },
+};
+
+
+// Color function for state visualization
+const getColor = (value, metric) => {
+    console.log('Value:', value, 'Metric:', metric);
+    const values = Object.values(stateData).map((state) => state[metric]);
+    console.log('Values:', values);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const ratio = (value - min) / (max - min);
+    const red = Math.floor(255 * ratio);
+    const blue = 255 - red;
+    console.log('Color:', `rgb(${red}, 0, ${blue})`);
+    return `rgb(${red}, 0, ${blue})`;
+};
+
 export default function Map() {
     const mapContainer = useRef(null);
     const map = useRef(null);
     const draw = useRef(null);
-    const [lng, setLng] = useState(79.53371217221013);
-    const [lat, setLat] = useState(18.717748053758047);
-    const [zoom, setZoom] = useState(10);
+    const [lng, setLng] = useState(78.9629);
+    const [lat, setLat] = useState(22.5937);
+    const [zoom, setZoom] = useState(4);
     const [isMeasure, setIsMeasure] = useState(false);
     const [isArea, setIsArea] = useState(false);
     const [measurement, setMeasurement] = useState('');
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
 
+    // State data visualization settings
+    const [selectedMetric, setSelectedMetric] = useState('population');
+    const [indiaGeoJSON, setIndiaGeoJSON] = useState(null);
+
     // Drawer state
     const [drawerOpen, setDrawerOpen] = useState(false);
 
     // Layer toggle states
     const [layers, setLayers] = useState({
-        satellite: false
+        satellite: false,
+        precipitation: false,
+        stateData: false
     });
-    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN; // Set your own mapbox token here
+
+    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || 'YOUR_MAPBOX_ACCESS_TOKEN'; // Use env or fallback
 
     // Initialize the map
     useEffect(() => {
@@ -83,31 +291,22 @@ export default function Map() {
             style: 'mapbox://styles/mapbox/standard',
             center: [lng, lat],
             zoom: zoom,
-            config: {
-                basemap: {
-                    lightPreset: (() => {
-                        return 'day';
-                        const hour = new Date().getHours();
-                        if (hour >= 5 && hour < 8) return 'dawn';
-                        if (hour >= 8 && hour < 17) return 'day';
-                        if (hour >= 17 && hour < 20) return 'dusk';
-                        return 'night';
-                    })()
-                }
-            }
         });
 
-        map.current.addControl(new mapboxgl.NavigationControl());
+        map.current.addControl(new mapboxgl.NavigationControl({
+            showCompass: false
+        }), 'bottom-right');
         map.current.addControl(new mapboxgl.ScaleControl());
         map.current.addControl(new mapboxgl.GeolocateControl({
             positionOptions: { enableHighAccuracy: true },
             trackUserLocation: true,
             showUserHeading: true
-        }));
+        }), 'bottom-right');
+        map.current.dragRotate.disable();
+        map.current.touchZoomRotate.disableRotation();
 
         const drawTool = new MapboxDraw({
             displayControlsDefault: false,
-            // controls: { trash: true }
         });
 
         map.current.on('move', () => {
@@ -117,36 +316,19 @@ export default function Map() {
         });
 
         draw.current = drawTool;
-
         map.current.addControl(draw.current);
 
         map.current.on('draw.create', updateMeasurement);
         map.current.on('draw.update', updateMeasurement);
         map.current.on('draw.delete', () => {
             setMeasurement('');
-            console.log('Measurement cleared');
         });
-
         map.current.on('draw.selectionchange', updateMeasurement);
 
         // Initialize map layers once the map is loaded
         map.current.on('load', () => {
-            // Add terrain source
-            map.current.addSource('mapbox-terrain', {
-                'type': 'raster-dem',
-                'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
-                'tileSize': 512,
-                'maxzoom': 14
-            });
-
-            // Add Bhuvan WMS source
-            map.current.addSource('bhuvan-wms', {
-                'type': 'raster',
-                'tiles': [
-                    'http://bhuvan5.nrsc.gov.in/bhuvan/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&FORMAT=image/png&TRANSPARENT=true&LAYERS=india_outline&SRS=EPSG:4326&WIDTH=256&HEIGHT=256&BBOX={bbox-epsg-4326}'
-                ],
-                'tileSize': 256
-            });
+            // Fetch India GeoJSON for state data visualization
+            fetchIndiaGeoJSON();
 
             // Add satellite source
             map.current.addSource('mapbox-satellite', {
@@ -154,8 +336,28 @@ export default function Map() {
                 'url': 'mapbox://mapbox.satellite',
                 'tileSize': 256
             });
+
+            map.current.addSource('precipitation-rate', {
+                'type': 'raster',
+                'tiles': [
+                    'https://gibs.earthdata.nasa.gov/wms/epsg3857/best/wms.cgi?service=WMS&request=GetMap&layers=IMERG_Precipitation_Rate&styles=&format=image/png&transparent=true&version=1.1.1&width=256&height=256&srs=EPSG:3857&bbox={bbox-epsg-3857}'
+                ],
+                'tileSize': 256
+            });
         });
+
     }, []);
+
+    // Fetch India GeoJSON data
+    const fetchIndiaGeoJSON = async () => {
+        try {
+            const response = await fetch('\\india-states.json');
+            const data = await response.json();
+            setIndiaGeoJSON(data);
+        } catch (error) {
+            console.error("Failed to load India GeoJSON:", error);
+        }
+    };
 
     // Handle layer toggle changes
     useEffect(() => {
@@ -168,9 +370,6 @@ export default function Map() {
                     'id': 'satellite-layer',
                     'type': 'raster',
                     'source': 'mapbox-satellite',
-                    'paint': {
-                        'raster-opacity': 0.6
-                    }
                 });
             }
         } else {
@@ -178,7 +377,124 @@ export default function Map() {
                 map.current.removeLayer('satellite-layer');
             }
         }
-    }, [layers]);
+
+        // Handle precipitation layer
+        if (layers.precipitation) {
+            if (!map.current.getLayer('precipitation-layer')) {
+                map.current.addLayer({
+                    'id': 'precipitation-layer',
+                    'type': 'raster',
+                    'source': 'precipitation-rate',
+                    'paint': {
+                        'raster-opacity': 0.6
+                    }
+                });
+            }
+        } else {
+            if (map.current.getLayer('precipitation-layer')) {
+                map.current.removeLayer('precipitation-layer');
+            }
+        }
+
+        // Handle state data visualization
+        if (layers.stateData && indiaGeoJSON) {
+            updateMapColors();
+        } else {
+            if (map.current.getLayer('states-layer')) {
+                map.current.removeLayer('states-layer');
+            }
+            if (map.current.getSource('india-states')) {
+                map.current.removeSource('india-states');
+            }
+        }
+    }, [layers, indiaGeoJSON, selectedMetric]);
+
+    // Update map colors based on selected metric
+    const updateMapColors = () => {
+        if (!indiaGeoJSON || !map.current) return;
+
+        // Remove existing layer if it exists
+        if (map.current.getLayer('states-layer')) {
+            console.log('Removing existing layer');
+            map.current.removeLayer('states-layer');
+        }
+
+        // Remove existing source if it exists
+        if (map.current.getSource('india-states')) {
+            console.log('Removing existing source');
+            map.current.removeSource('india-states');
+        }
+
+        const updatedGeoJSON = {
+            ...indiaGeoJSON,
+
+            features: indiaGeoJSON.features.map((feature) => {
+                console.log('Feature:', feature);
+                const stateName = feature.properties.name
+                console.log('State Name:', stateName);
+                const metricValue = stateData[stateName]?.[selectedMetric] || 0;
+                console.log('Metric Value:', metricValue);
+                return {
+                    ...feature,
+                    properties: {
+                        ...feature.properties,
+                        color: getColor(metricValue, selectedMetric),
+                        metricValue: metricValue
+                    },
+                };
+            }),
+        };
+
+        console.log('Adding updated source and layer', updatedGeoJSON);
+
+        map.current.addSource('india-states', {
+            type: 'geojson',
+            data: updatedGeoJSON,
+        });
+
+        map.current.addLayer({
+            id: 'states-layer',
+            type: 'fill',
+            source: 'india-states',
+            paint: {
+                'fill-color': ['get', 'color'],
+                'fill-opacity': 0.7,
+                'fill-outline-color': '#000',
+            },
+        });
+
+        // Add popup for state data
+        map.current.on('click', 'states-layer', (e) => {
+            // Remove all existing popups
+            document.querySelectorAll('.mapboxgl-popup').forEach(popup => {
+                popup.remove();
+            });
+            if (!e.features.length) return;
+
+            const feature = e.features[0];
+            const stateName = feature.properties.name;
+            const metricValue = feature.properties.metricValue;
+            const metricLabel = {
+                'population': 'Population',
+                'gdp': 'GDP (in millions)',
+                'area': 'Area (sq km)',
+                'literacyRate': 'Literacy Rate (%)'
+            }[selectedMetric];
+
+            new mapboxgl.Popup()
+                .setLngLat(e.lngLat)
+                .setHTML(`<h3>${stateName}</h3><p>${metricLabel}: ${metricValue.toLocaleString()}</p>`)
+                .addTo(map.current);
+        });
+
+        // Change cursor on hover
+        map.current.on('mouseenter', 'states-layer', () => {
+            map.current.getCanvas().style.cursor = 'pointer';
+        });
+        map.current.on('mouseleave', 'states-layer', () => {
+            map.current.getCanvas().style.cursor = '';
+        });
+    };
 
     const toggleMeasurement = (type) => {
         draw.current.deleteAll();
@@ -253,8 +569,14 @@ export default function Map() {
 
     const addGeoJSONToMap = (geoJSONData) => {
         // Remove existing layer and source if they exist
-        if (map.current.getLayer('uploadedGeoJSON')) {
-            map.current.removeLayer('uploadedGeoJSON');
+        if (map.current.getLayer('uploadedGeoJSON-points')) {
+            map.current.removeLayer('uploadedGeoJSON-points');
+        }
+        if (map.current.getLayer('uploadedGeoJSON-lines')) {
+            map.current.removeLayer('uploadedGeoJSON-lines');
+        }
+        if (map.current.getLayer('uploadedGeoJSON-polygons')) {
+            map.current.removeLayer('uploadedGeoJSON-polygons');
         }
         if (map.current.getSource('uploadedGeoJSON')) {
             map.current.removeSource('uploadedGeoJSON');
@@ -394,11 +716,11 @@ export default function Map() {
 
     return (
         <>
-            <Stack direction='row' spacing={2} sx={{ position: 'absolute', top: 0, left: 0, zIndex: 1, padding: 2 }}>
+            <Stack direction='row' spacing={2} sx={{ position: 'absolute', top: 0, left: 0, zIndex: 1, padding: 2, display: 'flex' }}>
                 <Chip icon={isMeasure ? <DoneRounded /> : <StraightenRounded />} label="Length" sx={{ color: 'black', background: 'white', '&:hover': { backgroundColor: '#e0e0e0' }, '&:active': { backgroundColor: '#c0c0c0' } }} onClick={() => toggleMeasurement('line')}></Chip>
                 <Chip icon={isArea ? <DoneRounded /> : <SquareFootRounded />} label="Area" sx={{ color: 'black', background: 'white', '&:hover': { backgroundColor: '#e0e0e0' }, '&:active': { backgroundColor: '#c0c0c0' } }} onClick={() => toggleMeasurement('area')}></Chip>
                 <Chip icon={<Queue />} label="Add Layer" sx={{ background: 'white', '&:hover': { color: 'black', backgroundColor: '#e0e0e0' }, '&:active': { backgroundColor: '#c0c0c0' } }} onClick={handleClick}></Chip>
-                <Chip icon={<Layers />} label="Layer Manager" sx={{ background: 'white', '&:hover': { color: 'black', backgroundColor: '#e0e0e0' }, '&:active': { backgroundColor: '#c0c0c0' } }} onClick={toggleDrawer}></Chip>
+                <Chip icon={<Layers />} label="Layers" sx={{ background: 'white', '&:hover': { color: 'black', backgroundColor: '#e0e0e0' }, '&:active': { backgroundColor: '#c0c0c0' } }} onClick={toggleDrawer}></Chip>
                 <Menu
                     id="long-menu"
                     MenuListProps={{
@@ -458,6 +780,36 @@ export default function Map() {
                 </Menu>
             </Stack>
 
+            {/* State Data Analysis Controls */}
+            {layers.stateData && (
+                <Box sx={{ position: 'absolute', top: 55, right: 7, zIndex: 1, padding: 2, backgroundColor: 'white', borderRadius: 2, boxShadow: 2, width: 250 }}>
+                    <Typography variant="subtitle1" gutterBottom>
+                        India State Data Analysis
+                    </Typography>
+                    <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                        <InputLabel>Metric</InputLabel>
+                        <Select
+                            value={selectedMetric}
+                            label="Metric"
+                            onChange={(e) => setSelectedMetric(e.target.value)}
+                        >
+                            <MenuItem value="population">Population</MenuItem>
+                            <MenuItem value="gdp">GDP</MenuItem>
+                            <MenuItem value="area">Area</MenuItem>
+                            <MenuItem value="literacyRate">Literacy Rate</MenuItem>
+                        </Select>
+                    </FormControl>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={updateMapColors}
+                        fullWidth
+                    >
+                        Update Visualization
+                    </Button>
+                </Box>
+            )}
+
             {/* Layer Manager Drawer */}
             <Drawer
                 anchor="left"
@@ -468,8 +820,6 @@ export default function Map() {
                         width: DRAWER_WIDTH,
                         boxSizing: 'border-box',
                         borderRadius: '0 16px 16px 0',
-                        // marginTop: '64px',
-                        // height: 'calc(100% - 64px)',
                     },
                 }}
             >
@@ -494,11 +844,33 @@ export default function Map() {
                             onChange={() => handleLayerToggle('satellite')}
                         />
                     </ListItem>
+                    <ListItem>
+                        <ListItemIcon>
+                            <MapIcon />
+                        </ListItemIcon>
+                        <ListItemText primary="Precipitation Rate" secondary="Global Precipitation Rate" />
+                        <Switch
+                            edge="end"
+                            checked={layers.precipitation}
+                            onChange={() => handleLayerToggle('precipitation')}
+                        />
+                    </ListItem>
+                    <ListItem>
+                        <ListItemIcon>
+                            <BarChart />
+                        </ListItemIcon>
+                        <ListItemText primary="India State Data" secondary="Population, GDP, Area, Literacy" />
+                        <Switch
+                            edge="end"
+                            checked={layers.stateData}
+                            onChange={() => handleLayerToggle('stateData')}
+                        />
+                    </ListItem>
                 </List>
                 <Divider />
                 <Box sx={{ padding: 2 }}>
                     <Typography variant="caption" color="text.secondary">
-                        Toggle layers on and off to customize your map view. Additional layers can be added to this panel as needed.
+                        Toggle layers on and off to customize your map view. The India State Data layer provides visual analysis of key metrics across Indian states.
                     </Typography>
                 </Box>
             </Drawer>
