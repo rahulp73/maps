@@ -8,6 +8,7 @@ import { kml } from '@tmcw/togeojson';
 import { styled } from '@mui/material/styles';
 import { Chip, Stack, Snackbar, Menu, MenuItem, Button, Drawer, Box, Typography, List, ListItem, ListItemIcon, ListItemText, Switch, Divider, IconButton, FormControl, InputLabel, Select } from '@mui/material';
 import { CloudUploadRounded, DoneRounded, Queue, SquareFootRounded, StraightenRounded, Layers, Terrain, Satellite, Map as MapIcon, ChevronLeft, BarChart } from '@mui/icons-material';
+import './Map.css';
 
 const ITEM_HEIGHT = 48;
 const DRAWER_WIDTH = 300;
@@ -235,6 +236,12 @@ const stateData = {
         gdp: 50000,
         area: 479,
         literacyRate: 85.85,
+    },
+    'Ladakh': {
+        population: 274289,
+        gdp: 7000, // in million INR (approx estimate)
+        area: 59146, // in square kilometers
+        literacyRate: 77.3, // in percentage
     },
 };
 
@@ -799,14 +806,14 @@ export default function Map() {
                             <MenuItem value="literacyRate">Literacy Rate</MenuItem>
                         </Select>
                     </FormControl>
-                    <Button
+                    {/* <Button
                         variant="contained"
                         color="primary"
                         onClick={updateMapColors}
                         fullWidth
                     >
                         Update Visualization
-                    </Button>
+                    </Button> */}
                 </Box>
             )}
 

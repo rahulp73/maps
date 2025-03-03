@@ -10,3 +10,9 @@
     font-weight: 900;
     font-size: 100%; /* Adjust the font size */
 }
+
+.mapboxgl-popup-close-button{
+    margin-right: 2% !important;
+    font-size: large !important;
+    border-radius: 6px !important;
+}
