@@ -948,7 +948,7 @@ export default function Map() {
                 message={measurement}
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             />
-            <div id='map-container' style={{ position: 'relative', height: '100vh' }} ref={mapContainer}></div>
+            <div id='map-container' style={{ position: 'relative', height: '100dvh' }} ref={mapContainer}></div>
         </>
     );
 }
