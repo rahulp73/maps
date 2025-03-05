@@ -358,12 +358,12 @@ export default function Map() {
     // Handle projection change
     const toggleGlobeView = () => {
         if (!map.current) return;
-        
+
         const newProjection = isGlobeView ? 'mercator' : 'globe';
-        
+
         // Update the map projection
         map.current.setProjection(newProjection);
-        
+
         // Adjust controls based on projection
         if (newProjection === 'globe') {
             // Enable rotation for globe view
@@ -374,7 +374,7 @@ export default function Map() {
             map.current.dragRotate.disable();
             map.current.touchZoomRotate.disableRotation();
         }
-        
+
         setIsGlobeView(!isGlobeView);
     };
 
@@ -486,12 +486,16 @@ export default function Map() {
             },
         });
 
-        // Add popup for state data
-        map.current.on('click', 'states-layer', (e) => {
+        // Modify within updateMapColors method
+        const handleStateClick = (e) => {
+            // Prevent default behavior for both click and touch events
+            e.preventDefault();
+
             // Remove all existing popups
             document.querySelectorAll('.mapboxgl-popup').forEach(popup => {
                 popup.remove();
             });
+
             if (!e.features.length) return;
 
             const feature = e.features[0];
@@ -504,11 +508,18 @@ export default function Map() {
                 'literacyRate': 'Literacy Rate (%)'
             }[selectedMetric];
 
-            new mapboxgl.Popup()
+            new mapboxgl.Popup({
+                closeButton: true,  // Add close button
+                closeOnClick: true  // Close on clicking outside
+            })
                 .setLngLat(e.lngLat)
                 .setHTML(`<h3>${stateName}</h3><p>${metricLabel}: ${metricValue.toLocaleString()}</p>`)
                 .addTo(map.current);
-        });
+        };
+
+        // Add event listeners
+        map.current.on('click', 'states-layer', handleStateClick);
+        map.current.on('touchend', 'states-layer', handleStateClick);
 
         // Change cursor on hover
         map.current.on('mouseenter', 'states-layer', () => {
@@ -821,19 +832,19 @@ export default function Map() {
                             </Button>
                         </MenuItem>
                     </Menu>
-                    <Chip 
-                        icon={isGlobeView ? <MapIcon /> : <Public />} 
-                        label={isGlobeView ? "Mercator" : "Globe"} 
-                        sx={{ 
-                            background: 'white', 
-                            '&:hover': { 
-                                color: 'black', 
-                                backgroundColor: '#e0e0e0' 
-                            }, 
-                            '&:active': { 
-                                backgroundColor: '#c0c0c0' 
-                            } 
-                        }} 
+                    <Chip
+                        icon={isGlobeView ? <MapIcon /> : <Public />}
+                        label={isGlobeView ? "Mercator" : "Globe"}
+                        sx={{
+                            background: 'white',
+                            '&:hover': {
+                                color: 'black',
+                                backgroundColor: '#e0e0e0'
+                            },
+                            '&:active': {
+                                backgroundColor: '#c0c0c0'
+                            }
+                        }}
                         onClick={toggleGlobeView}
                     />
                 </Stack>
